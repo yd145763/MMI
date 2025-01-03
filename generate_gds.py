@@ -8,14 +8,14 @@ Created on Fri Jan  3 15:22:45 2025
 import klayout.db as pya
 
 
-widthS = [50]
-heightS = [20]
-pitchS = [0.8]
-gapS = [5]
-taper_widthS = [5]
+widthS = [40,50]
+heightS = [10,20]
+pitchS = [0.8, 0.9, 1.2]
+gapS = [2,5]
+taper_widthS = [5,8]
 waveguide_widthS = [1]
 taper_lengthS = [10]
-taper_pitchS = [0.8]
+taper_pitchS = [1.1, 1.3, 0.8]
 
 for w in widthS:
     for h in heightS:
@@ -585,8 +585,7 @@ for w in widthS:
                                     
                                     print("Rectangle created and saved to "+filename+".gds")
                                     
-                                    
-                                    
+                                                                       
                                     
                                     # Create a new layout
                                     layout0 = pya.Layout()
