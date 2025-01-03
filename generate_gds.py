@@ -8,14 +8,14 @@ Created on Fri Jan  3 15:22:45 2025
 import klayout.db as pya
 
 
-widthS = [40,50]
-heightS = [10,20]
-pitchS = [0.8, 0.9, 1.2]
-gapS = [2,5]
-taper_widthS = [5,8]
+widthS = [50]
+heightS = [20]
+pitchS = [0.8]
+gapS = [5]
+taper_widthS = [5]
 waveguide_widthS = [1]
 taper_lengthS = [10]
-taper_pitchS = [1.1, 1.3, 0.8]
+taper_pitchS = [0.8]
 
 for w in widthS:
     for h in heightS:
@@ -584,3 +584,176 @@ for w in widthS:
                                     layout.write(filename+".gds")
                                     
                                     print("Rectangle created and saved to "+filename+".gds")
+                                    
+                                    
+                                    
+                                    
+                                    # Create a new layout
+                                    layout0 = pya.Layout()
+                                
+                                    # Create a new layer
+                                    layer_index0 = layout0.layer(1, 0)  # Layer 1, datatype 0
+                                
+                                    # Create a top-level cell
+                                    top_cell0 = layout0.create_cell(filename+"_base")
+                                    
+                                    x1 = -(width/2)
+                                    y1 = -(height/2)
+                                    x2 = (width/2)
+                                    y2 = height/2
+                                    # Define rectangle dimensions (x1, y1, x2, y2) in database units (e.g., nanometers)
+                                    rect = pya.DBox(x1, y1, x2, y2)  # Rectangle from (0, 0) to (1000, 2000)
+                                    
+                                    # Convert to database units and add it to the layout
+                                    db_rect = pya.DPolygon(rect)  # Convert to database polygon
+                                    top_cell0.shapes(layer_index0).insert(db_rect)
+                                    print(x1,x2, "Base rectangle")
+                                    
+                                    x1 = (-width/2)+(-taper_pitch/2)
+                                    y1 = (gap/2)
+                                    x2 = (-width/2)
+                                    y2 = (gap/2)+(taper_width)
+                                    # Define rectangle dimensions (x1, y1, x2, y2) in database units (e.g., nanometers)
+                                    rect = pya.DBox(x1, y1, x2, y2)  # Rectangle from (0, 0) to (1000, 2000)
+                                    
+                                    # Convert to database units and add it to the layout
+                                    db_rect = pya.DPolygon(rect)  # Convert to database polygon
+                                    top_cell0.shapes(layer_index0).insert(db_rect)
+                                    print(x1,x2, "Upper left rectangle")
+                                    
+                                    
+                                    x1 = (-taper_pitch/2)+(-taper_length)+(-width/2)
+                                    y1 = (gap/2)+(taper_width/2)-(waveguide_width/2)
+                                    x2 = (-taper_pitch/2)+(-width/2)
+                                    y2 = (gap/2)
+                                    x3 = (-taper_pitch/2)+(-taper_length)+(-width/2)
+                                    y3 = (gap/2)+(taper_width/2)+(waveguide_width/2)
+                                    x4 = (-taper_pitch/2)+(-width/2)
+                                    y4 = (gap/2)+(taper_width)
+                                    
+                                    vertices = [
+                                        pya.DPoint(x1, y1),  # Point 1
+                                        pya.DPoint(x2, y2), # Point 2
+                                        pya.DPoint(x4, y4),    # Point 4
+                                        pya.DPoint(x3, y3)      # Point 3
+                                    ]
+                                
+                                    # Create a DPolygon using the vertices
+                                    trapezium = pya.DPolygon(vertices)
+                                
+                                    # Add the trapezium to the layer in the top cell
+                                    top_cell0.shapes(layer_index0).insert(trapezium)
+                                    print(x1,x2, "Upper left arm")
+                                    
+                                    
+                                    x1 = (-width/2)+(-taper_pitch/2)
+                                    y1 = (-gap/2)+(-taper_width)
+                                    x2 = (-width/2)
+                                    y2 = (-gap/2)
+                                    # Define rectangle dimensions (x1, y1, x2, y2) in database units (e.g., nanometers)
+                                    rect = pya.DBox(x1, y1, x2, y2)  # Rectangle from (0, 0) to (1000, 2000)
+                                    
+                                    # Convert to database units and add it to the layout
+                                    db_rect = pya.DPolygon(rect)  # Convert to database polygon
+                                    top_cell0.shapes(layer_index0).insert(db_rect)
+                                    print(x1,x2, "Lower left rectangle")
+                                    
+                                    
+                                    x1 = (-taper_pitch/2)+(-taper_length)+(-width/2)
+                                    y1 = (-gap/2)+(-taper_width/2)-(-waveguide_width/2)
+                                    x2 = (-taper_pitch/2)+(-width/2)
+                                    y2 = (-gap/2)
+                                    x3 = (-taper_pitch/2)+(-taper_length)+(-width/2)
+                                    y3 = (-gap/2)+(-taper_width/2)+(-waveguide_width/2)
+                                    x4 = (-taper_pitch/2)+(-width/2)
+                                    y4 = (-gap/2)+(-taper_width)
+                                    
+                                    vertices = [
+                                        pya.DPoint(x1, y1),  # Point 1
+                                        pya.DPoint(x2, y2), # Point 2
+                                        pya.DPoint(x4, y4),    # Point 4
+                                        pya.DPoint(x3, y3)      # Point 3
+                                    ]
+                                
+                                    # Create a DPolygon using the vertices
+                                    trapezium = pya.DPolygon(vertices)
+                                
+                                    # Add the trapezium to the layer in the top cell
+                                    top_cell0.shapes(layer_index0).insert(trapezium)
+                                    print(x1,x2, "Lower left arm")
+                                    
+                                    
+                                    x1 = (width/2)
+                                    y1 = (gap/2)
+                                    x2 = (width/2)+(taper_pitch/2)
+                                    y2 = (gap/2)+(taper_width)
+                                    # Define rectangle dimensions (x1, y1, x2, y2) in database units (e.g., nanometers)
+                                    rect = pya.DBox(x1, y1, x2, y2)  # Rectangle from (0, 0) to (1000, 2000)
+                                    
+                                    # Convert to database units and add it to the layout
+                                    db_rect = pya.DPolygon(rect)  # Convert to database polygon
+                                    top_cell0.shapes(layer_index0).insert(db_rect)
+                                    print(x1,x2, "Upper right rectangle")
+                                    
+                                    x1 = (taper_pitch/2)+(width/2)
+                                    y1 = (gap/2)
+                                    x2 = (taper_pitch/2)+(width/2)+(taper_length)
+                                    y2 = (gap/2)+(taper_width/2)-(waveguide_width/2)
+                                    x3 = (taper_pitch/2)+(width/2)
+                                    y3 = (gap/2)+(taper_width)
+                                    x4 = (taper_pitch/2)+(width/2)+(taper_length)
+                                    y4 = (gap/2)+(taper_width/2)+(waveguide_width/2)
+                                    
+                                    vertices = [
+                                        pya.DPoint(x1, y1),  # Point 1
+                                        pya.DPoint(x2, y2), # Point 2
+                                        pya.DPoint(x4, y4),    # Point 4
+                                        pya.DPoint(x3, y3)      # Point 3
+                                    ]
+                                
+                                    # Create a DPolygon using the vertices
+                                    trapezium = pya.DPolygon(vertices)
+                                
+                                    # Add the trapezium to the layer in the top cell
+                                    top_cell0.shapes(layer_index0).insert(trapezium)
+                                    print(x1,x2, "Upper right arm")
+                                    
+                                    x1 = (width/2)
+                                    y1 = (-gap/2)+(-taper_width)
+                                    x2 = (width/2)+(taper_pitch/2)
+                                    y2 = (-gap/2)
+                                    # Define rectangle dimensions (x1, y1, x2, y2) in database units (e.g., nanometers)
+                                    rect = pya.DBox(x1, y1, x2, y2)  # Rectangle from (0, 0) to (1000, 2000)
+                                    
+                                    # Convert to database units and add it to the layout
+                                    db_rect = pya.DPolygon(rect)  # Convert to database polygon
+                                    top_cell0.shapes(layer_index0).insert(db_rect)
+                                    print(x1,x2, "Lower right rectangle")
+                                    
+                                    x1 = (taper_pitch/2)+(width/2)
+                                    y1 = (-gap/2)+(-taper_width)
+                                    x2 = (taper_pitch/2)+(width/2)+(taper_length)
+                                    y2 = (-gap/2)+(-taper_width/2)-(waveguide_width/2)
+                                    x3 = (taper_pitch/2)+(width/2)
+                                    y3 = (-gap/2)
+                                    x4 = (taper_pitch/2)+(width/2)+(taper_length)
+                                    y4 = (-gap/2)+(-taper_width/2)+(waveguide_width/2)
+                                    
+                                    vertices = [
+                                        pya.DPoint(x1, y1),  # Point 1
+                                        pya.DPoint(x2, y2), # Point 2
+                                        pya.DPoint(x4, y4),    # Point 4
+                                        pya.DPoint(x3, y3)      # Point 3
+                                    ]
+                                
+                                    # Create a DPolygon using the vertices
+                                    trapezium = pya.DPolygon(vertices)
+                                
+                                    # Add the trapezium to the layer in the top cell
+                                    top_cell0.shapes(layer_index0).insert(trapezium)
+                                    print(x1,x2, "Lower right arm")
+                                    
+                                    
+                                    layout0.write(filename+"_base.gds")
+                                    
+                                    print("Rectangle created and saved to "+filename+"_base.gds")
