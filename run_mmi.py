@@ -37,6 +37,11 @@ waveguide_width_list = []
 pitch_list = []
 
 fdtd_margin = 5e-06
+fdtd_margin_z = 1e-06
+soi_thickness = 0.22e-6
+etch_depth = 0.11e-6
+
+visualize_index = True
 
 
 
@@ -92,13 +97,18 @@ for g in gds_files:
         pitch = extractfromstring('p', g)
         pitch_list.append(pitch)
         
-        fdtd.gdsimport("C:\\Users\\Lim Yudian\\Documents\\mmi_gratings\\"+g+"_base.GDS", g+"_base", 1, "Si (Silicon) - Palik", -0.08e-6, 0) #
+        base_thickness = soi_thickness - etch_depth
+        base_min = (-soi_thickness/2)
+        base_max = base_min+base_thickness
+        base_position = (base_max+base_min)/2
+        
+        fdtd.gdsimport("C:\\Users\\Lim Yudian\\Documents\\mmi_gratings\\"+g+"_base.GDS", g+"_base", 1, "Si (Silicon) - Palik", -(base_thickness/2), (base_thickness/2)) #
         fdtd.set("name", g+"_base")
         fdtd.set("x", 0.0)
         fdtd.set("y", 0.0)
-        fdtd.set("z", -0.11e-6)
+        fdtd.set("z", base_position)
         
-        fdtd.gdsimport("C:\\Users\\Lim Yudian\\Documents\\mmi_gratings\\"+g+".GDS", g, 1, "Si (Silicon) - Palik", -0.11e-6, 0.11e-6) #
+        fdtd.gdsimport("C:\\Users\\Lim Yudian\\Documents\\mmi_gratings\\"+g+".GDS", g, 1, "Si (Silicon) - Palik", -(soi_thickness/2), (soi_thickness/2)) #
         fdtd.set("name", g)
         fdtd.set("x", 0.0)
         fdtd.set("y", 0.0)
@@ -123,6 +133,57 @@ for g in gds_files:
         fdtd.set("y min", -1*((height/2)))
         fdtd.set("y max", ((height/2)))
         fdtd.set("z", 0)
+        
+        fdtd.addindex()
+        fdtd.set("name","index_monitor")
+        fdtd.set("monitor type",3)  # 2D y-normal
+        fdtd.set("x min", (-width/2)+(-taper_pitch/2)+(-taper_length))
+        fdtd.set("x max",(width/2)+(taper_pitch/2)+(taper_length))
+        fdtd.set("y min", -(height/2))
+        fdtd.set("y max", (height/2))
+        fdtd.set("z", 0.0)
+        
+        def visualizeindex():
+            index = fdtd.getresult("index_monitor","index")
+            ix = index['index_x']
+            ix = ix[::10,::10,0,0]
+        
+            iy = index['index_y']
+            iy = iy[::10,::10,0,0]
+            index_abs = np.sqrt(np.abs(iy)**2)
+        
+            x1 = index["x"]
+            x1 = x1[::10,0]
+            x1 = [i*1000000 for i in x1]
+            y1 = index["y"]
+            y1 = y1[::10,0]
+            y1 = [i*1000000 for i in y1]
+            
+            index_abs = index_abs.transpose()
+        
+            fig,ax=plt.subplots(1,1)
+            cp=ax.contourf(x1,y1,index_abs, 200, zdir='z', offset=-100, cmap='jet')
+            clb=fig.colorbar(cp)
+            clb.ax.set_title('Index', fontweight="bold")
+            for l in clb.ax.yaxis.get_ticklabels():
+                l.set_weight("bold")
+                l.set_fontsize(12)
+            ax.set_xlabel('x-position (µm)', fontsize=13, fontweight="bold", labelpad=1)
+            ax.set_ylabel('z-position (µm)', fontsize=13, fontweight="bold", labelpad=1)
+            ax.xaxis.label.set_fontsize(13)
+            ax.xaxis.label.set_weight("bold")
+            ax.yaxis.label.set_fontsize(13)
+            ax.yaxis.label.set_weight("bold")
+            ax.tick_params(axis='both', which='major', labelsize=13)
+            ax.set_yticklabels(ax.get_yticks(), weight='bold')
+            ax.set_xticklabels(ax.get_xticks(), weight='bold')
+            ax.xaxis.set_major_formatter(StrMethodFormatter('{x:,.1f}'))
+            ax.yaxis.set_major_formatter(StrMethodFormatter('{x:,.1f}'))
+            plt.title(g+'\n')
+            plt.show()
+            plt.close()
+        if visualize_index == True:
+            visualizeindex()
         
         fdtd.addport()
         fdtd.set("name","port 1")
@@ -158,7 +219,7 @@ for g in gds_files:
         
         fdtd.setglobalsource("wavelength start",1500e-9)
         fdtd.setglobalsource("wavelength stop",1600e-9)
-        fdtd.setglobalmonitor("frequency points",11)
+        fdtd.setglobalmonitor("frequency points",31)
         
         fdtd.save('C:\\Users\\Lim Yudian\\Documents\\mmi_gratings\\script_run.fsp')
         print("simulating......")

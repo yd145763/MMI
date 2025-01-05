@@ -417,7 +417,7 @@ if g in gds_files_base:
             l.set_weight("bold")
             l.set_fontsize(12)
         ax.set_xlabel('x-position (µm)', fontsize=13, fontweight="bold", labelpad=1)
-        ax.set_ylabel('y-position (µm)', fontsize=13, fontweight="bold", labelpad=1)
+        ax.set_ylabel('z-position (µm)', fontsize=13, fontweight="bold", labelpad=1)
         ax.xaxis.label.set_fontsize(13)
         ax.xaxis.label.set_weight("bold")
         ax.yaxis.label.set_fontsize(13)

@@ -52,8 +52,10 @@ waveguide_width_list = []
 pitch_list = []
 
 fdtd_margin = 5e-06
-
-
+fdtd_margin_z = 1e-06
+soi_thickness = 0.22e-6
+etch_depth = 0.11e-6
+visualize_index = True
 
 # Specify the path
 path = 'C:\\Users\\Lim Yudian\\Documents\\mmi_gratings\\'
@@ -71,7 +73,7 @@ lumapi = imp.load_source("lumapi","C:\\Program Files\\Lumerical\\v241\\api\\pyth
 fdtd = lumapi.FDTD()
 
 import re
-g = "w40000_h20000_p600_g5000_tw5000_wgw1000_tl10000_tp600_end"
+g = "w40000_h20000_p600_g5000_tw5000_wgw500_tl10000_tp600_end"
 
 if g in gds_files_base:
     def extractfromstring(symbol, filename):
@@ -107,13 +109,18 @@ if g in gds_files_base:
     pitch = extractfromstring('p', g)
     pitch_list.append(pitch)
     
-    fdtd.gdsimport("C:\\Users\\Lim Yudian\\Documents\\mmi_gratings\\"+g+"_base.GDS", g+"_base", 1, "Si (Silicon) - Palik", -0.08e-6, 0) #
+    base_thickness = soi_thickness - etch_depth
+    base_min = (-soi_thickness/2)
+    base_max = base_min+base_thickness
+    base_position = (base_max+base_min)/2
+    
+    fdtd.gdsimport("C:\\Users\\Lim Yudian\\Documents\\mmi_gratings\\"+g+"_base.GDS", g+"_base", 1, "Si (Silicon) - Palik", -(base_thickness/2), (base_thickness/2)) #
     fdtd.set("name", g+"_base")
     fdtd.set("x", 0.0)
     fdtd.set("y", 0.0)
-    fdtd.set("z", -0.11e-6)
+    fdtd.set("z", base_position)
     
-    fdtd.gdsimport("C:\\Users\\Lim Yudian\\Documents\\mmi_gratings\\"+g+".GDS", g, 1, "Si (Silicon) - Palik", -0.11e-6, 0.11e-6) #
+    fdtd.gdsimport("C:\\Users\\Lim Yudian\\Documents\\mmi_gratings\\"+g+".GDS", g, 1, "Si (Silicon) - Palik", -(soi_thickness/2), (soi_thickness/2)) #
     fdtd.set("name", g)
     fdtd.set("x", 0.0)
     fdtd.set("y", 0.0)
@@ -129,6 +136,48 @@ if g in gds_files_base:
     fdtd.set("y max", ((height/2)+fdtd_margin))
     fdtd.set("z", 0)
     fdtd.set("background material", "SiO2 (Glass) - Palik")
+    
+    def visualizeindex():
+        index = fdtd.getresult("index_monitor","index")
+        ix = index['index_x']
+        ix = ix[::10,::10,0,0]
+    
+        iy = index['index_y']
+        iy = iy[::10,::10,0,0]
+        index_abs = np.sqrt(np.abs(iy)**2)
+    
+        x1 = index["x"]
+        x1 = x1[::10,0]
+        x1 = [i*1000000 for i in x1]
+        y1 = index["y"]
+        y1 = y1[::10,0]
+        y1 = [i*1000000 for i in y1]
+        
+        index_abs = index_abs.transpose()
+    
+        fig,ax=plt.subplots(1,1)
+        cp=ax.contourf(x1,y1,index_abs, 200, zdir='z', offset=-100, cmap='jet')
+        clb=fig.colorbar(cp)
+        clb.ax.set_title('Index', fontweight="bold")
+        for l in clb.ax.yaxis.get_ticklabels():
+            l.set_weight("bold")
+            l.set_fontsize(12)
+        ax.set_xlabel('x-position (µm)', fontsize=13, fontweight="bold", labelpad=1)
+        ax.set_ylabel('z-position (µm)', fontsize=13, fontweight="bold", labelpad=1)
+        ax.xaxis.label.set_fontsize(13)
+        ax.xaxis.label.set_weight("bold")
+        ax.yaxis.label.set_fontsize(13)
+        ax.yaxis.label.set_weight("bold")
+        ax.tick_params(axis='both', which='major', labelsize=13)
+        ax.set_yticklabels(ax.get_yticks(), weight='bold')
+        ax.set_xticklabels(ax.get_xticks(), weight='bold')
+        ax.xaxis.set_major_formatter(StrMethodFormatter('{x:,.1f}'))
+        ax.yaxis.set_major_formatter(StrMethodFormatter('{x:,.1f}'))
+        plt.title(g+'\n')
+        plt.show()
+        plt.close()
+    if visualize_index == True:
+        visualizeindex()
     
     fdtd.addpower()
     fdtd.set("name","E")
@@ -173,7 +222,7 @@ if g in gds_files_base:
     
     fdtd.setglobalsource("wavelength start",1500e-9)
     fdtd.setglobalsource("wavelength stop",1600e-9)
-    fdtd.setglobalmonitor("frequency points",11)
+    fdtd.setglobalmonitor("frequency points",31)
     
     fdtd.save('C:\\Users\\Lim Yudian\\Documents\\mmi_gratings\\script_run.fsp')
     print("simulating......")
@@ -265,11 +314,14 @@ if g in gds_files_base:
     fdtd.select(g+"_base")
     fdtd.delete() 
     
-    fdtd.gdsimport("C:\\Users\\Lim Yudian\\Documents\\mmi_gratings\\"+g+"_base.GDS", g+"_base", 1, "Si (Silicon) - Palik", -0.11e-6, 0.11e-6) #
+    fdtd.gdsimport("C:\\Users\\Lim Yudian\\Documents\\mmi_gratings\\"+g+"_base.GDS", g+"_base", 1, "Si (Silicon) - Palik", -(soi_thickness/2), (soi_thickness/2)) #
     fdtd.set("name", g+"_base")
     fdtd.set("x", 0.0)
     fdtd.set("y", 0.0)
     fdtd.set("z", 0.0)
+    
+    if visualize_index == True:
+        visualizeindex()
     
     fdtd.save('C:\\Users\\Lim Yudian\\Documents\\mmi_gratings\\script_run.fsp')
     print("simulating......")
