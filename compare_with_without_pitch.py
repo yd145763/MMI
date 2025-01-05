@@ -137,6 +137,15 @@ if g in gds_files_base:
     fdtd.set("z", 0)
     fdtd.set("background material", "SiO2 (Glass) - Palik")
     
+    fdtd.addindex()
+    fdtd.set("name","index_monitor")
+    fdtd.set("monitor type",3)  # 2D y-normal
+    fdtd.set("x min", (-width/2)+(-taper_pitch/2)+(-taper_length))
+    fdtd.set("x max",(width/2)+(taper_pitch/2)+(taper_length))
+    fdtd.set("y min", -(height/2))
+    fdtd.set("y max", (height/2))
+    fdtd.set("z", 0.0)
+    
     def visualizeindex():
         index = fdtd.getresult("index_monitor","index")
         ix = index['index_x']
