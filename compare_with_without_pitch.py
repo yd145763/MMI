@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
 """
+Created on Sat Jan  4 14:15:33 2025
+
+@author: Lim Yudian
+"""
+
+# -*- coding: utf-8 -*-
+"""
 Created on Fri Jan  3 19:37:19 2025
 
 @author: Lim Yudian
@@ -27,6 +34,14 @@ port1T_list = []
 port2T_list = []
 port3T_list = []
 port4T_list = []
+port1_list_base = []
+port2_list_base = []
+port3_list_base = []
+port4_list_base = []
+port1T_list_base = []
+port2T_list_base = []
+port3T_list_base = []
+port4T_list_base = []
 width_list = []
 height_list = []
 taper_length_list = []
@@ -37,7 +52,6 @@ waveguide_width_list = []
 pitch_list = []
 
 fdtd_margin = 5e-06
-soi_thickness = 0.22e-6
 
 
 
@@ -99,7 +113,7 @@ if g in gds_files_base:
     fdtd.set("y", 0.0)
     fdtd.set("z", -0.11e-6)
     
-    fdtd.gdsimport("C:\\Users\\Lim Yudian\\Documents\\mmi_gratings\\"+g+".GDS", g, 1, "Si (Silicon) - Palik", -(soi_thickness/2), (soi_thickness/2)) #
+    fdtd.gdsimport("C:\\Users\\Lim Yudian\\Documents\\mmi_gratings\\"+g+".GDS", g, 1, "Si (Silicon) - Palik", -0.11e-6, 0.11e-6) #
     fdtd.set("name", g)
     fdtd.set("x", 0.0)
     fdtd.set("y", 0.0)
@@ -245,8 +259,73 @@ if g in gds_files_base:
     plt.show()
     plt.close()
     
-else:
-    print("Base GDS is missing for "+g)
+    fdtd.switchtolayout()
+    fdtd.select(g)
+    fdtd.delete()   
+    fdtd.select(g+"_base")
+    fdtd.delete() 
+    
+    fdtd.gdsimport("C:\\Users\\Lim Yudian\\Documents\\mmi_gratings\\"+g+"_base.GDS", g+"_base", 1, "Si (Silicon) - Palik", -0.11e-6, 0.11e-6) #
+    fdtd.set("name", g+"_base")
+    fdtd.set("x", 0.0)
+    fdtd.set("y", 0.0)
+    fdtd.set("z", 0.0)
+    
+    fdtd.save('C:\\Users\\Lim Yudian\\Documents\\mmi_gratings\\script_run.fsp')
+    print("simulating......")
+    fdtd.run()
+    print("simulation done!")
+    
+    getE('port 1', port1_list_base)
+    getE('port 2', port2_list_base)
+    getE('port 3', port3_list_base)
+    getE('port 4', port4_list_base)
+    
+    getT('port 1', port1T_list_base)
+    getT('port 2', port2T_list_base)
+    getT('port 3', port3T_list_base)
+    getT('port 4', port4T_list_base)
+    
+    E = fdtd.getresult("E","E")
+    E2 = E["E"]
+    Ex1 = E2[:,:,:,0,0]
+    Ey1 = E2[:,:,:,0,1]
+    Ez1 = E2[:,:,:,0,2]
+    Emag1 = np.sqrt(np.abs(Ex1)**2 + np.abs(Ey1)**2 + np.abs(Ez1)**2)
+    Emag1 = Emag1[:,:,0]
+    x1 = E["x"]
+    x1 = x1[:,0]
+    x1 = [i*1000000 for i in x1]
+    y1 = E["y"]
+    y1 = y1[:,0]
+    y1 = [j*1000000 for j in y1]
+    
+    Emag1 = Emag1.transpose()
+    Emag1_df = pd.DataFrame(Emag1)
+
+    fig,ax=plt.subplots(1,1)
+    cp=ax.contourf(x1,y1,Emag1, 200, zdir='z', offset=-100, cmap='jet')
+    clb=fig.colorbar(cp)
+    clb.ax.set_title('Electric Field (eV)', fontweight="bold")
+    for l in clb.ax.yaxis.get_ticklabels():
+        l.set_weight("bold")
+        l.set_fontsize(12)
+    ax.set_xlabel('x-position (µm)', fontsize=13, fontweight="bold", labelpad=1)
+    ax.set_ylabel('y-position (µm)', fontsize=13, fontweight="bold", labelpad=1)
+    ax.xaxis.label.set_fontsize(13)
+    ax.xaxis.label.set_weight("bold")
+    ax.yaxis.label.set_fontsize(13)
+    ax.yaxis.label.set_weight("bold")
+    ax.tick_params(axis='both', which='major', labelsize=13)
+    ax.set_yticklabels(ax.get_yticks(), weight='bold')
+    ax.set_xticklabels(ax.get_xticks(), weight='bold')
+    ax.xaxis.set_major_formatter(StrMethodFormatter('{x:,.1f}'))
+    ax.yaxis.set_major_formatter(StrMethodFormatter('{x:,.1f}'))
+    plt.title(g+'_base\n')
+    plt.show()
+    plt.close()
+
+
 
 df_results = pd.DataFrame()
 df_results['port1_list'] = port1_list
@@ -257,6 +336,14 @@ df_results['port1T_list'] = port1T_list
 df_results['port2T_list'] = port2T_list
 df_results['port3T_list'] = port3T_list
 df_results['port4T_list'] = port4T_list
+df_results['port1_list_base'] = port1_list_base
+df_results['port2_list_base'] = port2_list_base
+df_results['port3_list_base'] = port3_list_base
+df_results['port4_list_base'] = port4_list_base
+df_results['port1T_list_base'] = port1T_list_base
+df_results['port2T_list_base'] = port2T_list_base
+df_results['port3T_list_base'] = port3T_list_base
+df_results['port4T_list_base'] = port4T_list_base
 df_results['width_list'] = width_list
 df_results['height_list'] = height_list
 df_results['taper_length_list'] = taper_length_list
