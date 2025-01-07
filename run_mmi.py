@@ -328,4 +328,4 @@ df_results['taper_width_list'] = taper_width_list
 df_results['waveguide_width_list'] = waveguide_width_list
 df_results['pitch_list'] = pitch_list
 
-
+df_results.to_csv(path+'df_results.csv')
